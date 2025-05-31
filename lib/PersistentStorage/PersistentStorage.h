@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <config.h>
+#include <Utils.h>
 
 class PersistentStorage
 {
@@ -16,14 +17,8 @@ public:
     static void setPassword(const String &value);
 
     // Time
-    static uint8_t getStartHour();
-    static uint8_t getStartMinute();
-    static uint8_t getEndHour();
-    static uint8_t getEndMinute();
-    static void setStartHour(uint8_t hour);
-    static void setStartMinute(uint8_t minute);
-    static void setEndHour(uint8_t hour);
-    static void setEndMinute(uint8_t minute);
+    static TimeRange getTimeRange();
+    static void setTimeRange(const TimeRange &range);
 
 private:
     static void writeString(int addr, const String &value, int maxLen);

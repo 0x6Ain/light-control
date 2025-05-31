@@ -1,6 +1,4 @@
 #include "WebConfigServer.h"
-#include "PersistentStorage.h"
-#include <config.h>
 
 WebConfigServer::WebConfigServer() : server(80) {}
 
@@ -11,6 +9,9 @@ void WebConfigServer::begin()
     server.on("/timer", std::bind(&WebConfigServer::handleTimerForm, this));
     server.on("/save_wifi", HTTP_POST, std::bind(&WebConfigServer::handleWiFiSave, this));
     server.on("/save_timer", HTTP_POST, std::bind(&WebConfigServer::handleTimerSave, this));
+    server.on("/led/on", std::bind(&WebConfigServer::handleLedOn, this));
+    server.on("/led/off", std::bind(&WebConfigServer::handleLedOff, this));
+    server.on("/led_toggle", HTTP_GET, std::bind(&WebConfigServer::handleLedToggle, this));
     server.begin();
 }
 
@@ -21,18 +22,19 @@ void WebConfigServer::handleClient()
 
 void WebConfigServer::handleRoot()
 {
-    String ssid = PersistentStorage::getSSID();
-    String pass = PersistentStorage::getPassword();
-    int sh = PersistentStorage::getStartHour();
-    int sm = PersistentStorage::getStartMinute();
-    int eh = PersistentStorage::getEndHour();
-    int em = PersistentStorage::getEndMinute();
+    String ssid = _storage.getSSID();
+    String pass = _storage.getPassword();
+    const TimeRange range = _storage.getTimeRange();
 
     char timeStr[6];
-    sprintf(timeStr, "%02d:%02d", sh, sm);
+    sprintf(timeStr, "%02d:%02d", range.startHour, range.startMinute);
     String startTime = String(timeStr);
-    sprintf(timeStr, "%02d:%02d", eh, em);
+    sprintf(timeStr, "%02d:%02d", range.endHour, range.endMinute);
     String endTime = String(timeStr);
+
+    const bool ledStatus = _led.isOn();
+    String ledStatusStr = ledStatus ? "켜짐" : "꺼짐";
+    String ledButtonLabel = ledStatus ? "끄기" : "켜기";
 
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>설정 상태</title></head><body>"
                   "<h1>현재 설정</h1>"
@@ -47,8 +49,12 @@ void WebConfigServer::handleRoot()
                             "<br>"
                             "<a href='/wifi'><button>Wi-Fi 설정</button></a>"
                             "<a href='/timer'><button>타이머 설정</button></a>"
-                            "<br><br>"
-                            "<footer><small>버전: " +
+                            "<p><strong>LED 상태:</strong> " +
+                  ledStatusStr + "</p>"
+                                 "<a href='/led_toggle'><button>LED " +
+                  ledButtonLabel + "</button></a>"
+                                   "<br><br>"
+                                   "<footer><small>버전: " +
                   VERSION_NUMBER + "</small></footer>"
                                    "</body></html>";
 
@@ -83,8 +89,8 @@ void WebConfigServer::handleTimerForm()
 
 void WebConfigServer::handleWiFiSave()
 {
-    PersistentStorage::setSSID(server.arg("ssid"));
-    PersistentStorage::setPassword(server.arg("pass"));
+    _storage.setSSID(server.arg("ssid"));
+    _storage.setPassword(server.arg("pass"));
 
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Wi-Fi 저장 완료</title></head><body>"
                   "<h1>Wi-Fi 저장 완료</h1>"
@@ -103,14 +109,39 @@ void WebConfigServer::handleTimerSave()
     int eh = end.substring(0, 2).toInt();
     int em = end.substring(3, 5).toInt();
 
-    PersistentStorage::setStartHour(sh);
-    PersistentStorage::setStartMinute(sm);
-    PersistentStorage::setEndHour(eh);
-    PersistentStorage::setEndMinute(em);
+    _storage.setTimeRange({sh, sm, eh, em});
 
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>타이머 저장 완료</title></head><body>"
                   "<h1>타이머 저장 완료</h1>"
                   "<a href='/'><button>홈으로</button></a>"
                   "</body></html>";
     server.send(200, "text/html; charset=utf-8", html);
+}
+
+void WebConfigServer::handleLedOn()
+{
+    this->_led.on();
+    server.sendHeader("Location", "/");
+    server.send(303, "text/plain", "");
+}
+
+void WebConfigServer::handleLedOff()
+{
+    this->_led.off();
+    server.sendHeader("Location", "/");
+    server.send(303, "text/plain", "");
+}
+
+void WebConfigServer::handleLedToggle()
+{
+    if (this->_led.isOn())
+    {
+        this->_led.off();
+    }
+    else
+    {
+        this->_led.on();
+    }
+    server.sendHeader("Location", "/");
+    server.send(303, "text/plain", "");
 }

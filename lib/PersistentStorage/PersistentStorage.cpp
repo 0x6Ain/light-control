@@ -25,44 +25,29 @@ void PersistentStorage::setPassword(const String &value)
     writeString(ADDR_PASS, value, 64);
 }
 
-uint8_t PersistentStorage::getStartHour()
+TimeRange PersistentStorage::getTimeRange()
 {
-    return readByte(ADDR_START_HOUR);
+    TimeRange range;
+    range.startHour = readByte(ADDR_START_HOUR);
+    range.startMinute = readByte(ADDR_START_MIN);
+    range.endHour = readByte(ADDR_END_HOUR);
+    range.endMinute = readByte(ADDR_END_MIN);
+
+    // 값이 EEPROM에 없거나 이상하면 기본값으로 설정 가능
+    if (!isValidTimeRange(range))
+    {
+        range = getDefaultTimeRange();
+    }
+    return range;
 }
 
-uint8_t PersistentStorage::getStartMinute()
+void PersistentStorage::setTimeRange(const TimeRange &range)
 {
-    return readByte(ADDR_START_MIN);
-}
-
-uint8_t PersistentStorage::getEndHour()
-{
-    return readByte(ADDR_END_HOUR);
-}
-
-uint8_t PersistentStorage::getEndMinute()
-{
-    return readByte(ADDR_END_MIN);
-}
-
-void PersistentStorage::setStartHour(uint8_t hour)
-{
-    writeByte(ADDR_START_HOUR, hour);
-}
-
-void PersistentStorage::setStartMinute(uint8_t minute)
-{
-    writeByte(ADDR_START_MIN, minute);
-}
-
-void PersistentStorage::setEndHour(uint8_t hour)
-{
-    writeByte(ADDR_END_HOUR, hour);
-}
-
-void PersistentStorage::setEndMinute(uint8_t minute)
-{
-    writeByte(ADDR_END_MIN, minute);
+    writeByte(ADDR_START_HOUR, range.startHour);
+    writeByte(ADDR_START_MIN, range.startMinute);
+    writeByte(ADDR_END_HOUR, range.endHour);
+    writeByte(ADDR_END_MIN, range.endMinute);
+    EEPROM.commit();
 }
 
 void PersistentStorage::writeString(int addr, const String &value, int maxLen)

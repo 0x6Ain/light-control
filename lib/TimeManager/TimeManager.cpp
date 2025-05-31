@@ -17,29 +17,28 @@ void TimeManager::update()
     _ntpClient.update();
 }
 
-String TimeManager::getCurrentTime()
+Time TimeManager::getCurrentTime()
 {
-    int h = _ntpClient.getHours();
-    int m = _ntpClient.getMinutes();
-    int s = _ntpClient.getSeconds();
-    char buffer[9];
-    snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", h, m, s);
-    return String(buffer);
+    return {
+        _ntpClient.getHours(),
+        _ntpClient.getMinutes(),
+        _ntpClient.getSeconds()};
 }
 
-bool TimeManager::isWithinTimeRange(int startHour, int startMinute, int endHour, int endMinute)
+bool TimeManager::isWithinTimeRange(const TimeRange &range)
 {
     int currentTotal = _ntpClient.getHours() * 60 + _ntpClient.getMinutes();
-    int startTotal = startHour * 60 + startMinute;
-    int endTotal = endHour * 60 + endMinute;
+    int startTotal = range.startHour * 60 + range.startMinute;
+    int endTotal = range.endHour * 60 + range.endMinute;
 
     if (startTotal <= endTotal)
     {
+        // 같은 날 안에 있는 경우
         return (currentTotal >= startTotal && currentTotal < endTotal);
     }
     else
     {
-        // 자정 넘김
+        // 자정을 넘어가는 경우 (예: 23:00 ~ 06:00)
         return (currentTotal >= startTotal || currentTotal < endTotal);
     }
 }

@@ -3,15 +3,16 @@
 
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Utils.h>
 
 class TimeManager
 {
 public:
     TimeManager();
-    void begin(const char *ntpServer = "pool.ntp.org", long gmtOffsetSec = 0, int updateIntervalMs = 60000);
+    void begin(const char *ntpServer = "pool.ntp.org", long gmtOffsetSec = 0, int updateIntervalMs = 4 * 60 * 60 * 1000);
     void update();
-    String getCurrentTime();
-    bool isWithinTimeRange(int startHour, int startMinute, int endHour, int endMinute);
+    Time getCurrentTime();
+    bool isWithinTimeRange(const TimeRange &range);
 
 private:
     WiFiUDP _ntpUDP;
