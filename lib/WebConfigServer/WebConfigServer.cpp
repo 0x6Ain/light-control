@@ -1,5 +1,6 @@
 #include "WebConfigServer.h"
 #include "PersistentStorage.h"
+#include <config.h>
 
 WebConfigServer::WebConfigServer() : server(80) {}
 
@@ -46,7 +47,10 @@ void WebConfigServer::handleRoot()
                             "<br>"
                             "<a href='/wifi'><button>Wi-Fi 설정</button></a>"
                             "<a href='/timer'><button>타이머 설정</button></a>"
-                            "</body></html>";
+                            "<br><br>"
+                            "<footer><small>버전: " +
+                  VERSION_NUMBER + "</small></footer>"
+                                   "</body></html>";
 
     server.send(200, "text/html; charset=utf-8", html);
 }
