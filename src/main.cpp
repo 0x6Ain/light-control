@@ -26,5 +26,5 @@ void setup()
 void loop()
 {
   handleNetworkTasks();
-  // handleLEDControl();
+  ledControlTimer.check(handleLEDControl);
 }
