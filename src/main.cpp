@@ -3,10 +3,11 @@
 void setup()
 {
   Serial.begin(115200);
-  persistentStorage.begin();
+  storage.begin();
+  led.begin(SENSOR_POWER_PIN, false);
 
-  String ssid = persistentStorage.getSSID();
-  String pass = persistentStorage.getPassword();
+  String ssid = storage.getSSID();
+  String pass = storage.getPassword();
 
   wifi.connect(ssid.c_str(), pass.c_str());
 
@@ -24,7 +25,6 @@ void setup()
 
 void loop()
 {
-  MDNS.update();
-  webConfig.handleClient();
-  ota.handle();
+  handleNetworkTasks();
+  // handleLEDControl();
 }
