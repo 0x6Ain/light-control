@@ -19,10 +19,12 @@ void setup()
   // http://${DEVICE_ID}.local
   MDNS.begin(DEVICE_ID);
   webConfig.begin();
+  ota.begin();
 }
 
 void loop()
 {
   MDNS.update();
   webConfig.handleClient();
+  ota.handle();
 }
