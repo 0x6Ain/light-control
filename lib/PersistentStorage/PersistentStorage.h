@@ -3,15 +3,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
-
-#define EEPROM_SIZE 256
-
-#define ADDR_SSID 0
-#define ADDR_PASS 64
-#define ADDR_START_HOUR 128
-#define ADDR_START_MIN 129
-#define ADDR_END_HOUR 130
-#define ADDR_END_MIN 131
+#include <config.h>
 
 class PersistentStorage
 {
